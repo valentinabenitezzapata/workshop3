@@ -1,3 +1,5 @@
+Django
+Pillow 
 openai
 google-generativeai
 huggingface_hub
