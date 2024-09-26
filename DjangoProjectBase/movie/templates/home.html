@@ -12,17 +12,7 @@
         <button type="submit" class="btn btn-primary">Search</button>
     </form>   
     <p>Searching for: {{searchTerm}}</p> 
-
-    <form action=""> <!-- especifica que al hacer clic en enviar, enviamos el formulario a la misma página-->
-        <div class="mb-3"> <!--agrega espacio inferior de 3 unidades-->
-            <label for="recommend_movie" class="form-label">Recommend movie:</label>
-            <input type="text" class="form-control" name="recommend_movie"/>
-        </div>
-        <button type="submit" class="btn btn-primary">Recommend</button>
-    </form>   
-    <p>Searching for: {{recommendationTerm}}</p> 
     
-
     <div class="row row-cols-1 row-cols-md-3 g-4"> <!-- define una fila en una cuadrícula con una columna en pantallas extra pequeñas y tres columnas en pantallas grandes-->
         {% for movie in movies %}
         <div v-for="movie in movies" class="col">

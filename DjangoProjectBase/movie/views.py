@@ -14,19 +14,14 @@ from dotenv import load_dotenv
 def get_embedding(text, client, model="text-embedding-3-small"):
    text = text.replace("\n", " ")
    return client.embeddings.create(input=[text], model=model).data[0].embedding
-
 def cosine_similarity(a, b):
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
-
-def home(request):
-    searchTerm = request.GET.get('searchMovie')
+def recommend_movies(request):
     recommendationTerm = request.GET.get('recommend_movie')
     movies = Movie.objects.all()
-    load_dotenv(r'D:\Users\Valentina\Universidad_EAFIT\Quinto_Semestre\Proyecto_Integrador_1\workshop3\workshop3\api_key.env')
-    client = OpenAI(api_key=os.environ.get('openai_api_key'))
-    if searchTerm:
-        movies = Movie.objects.filter(title__icontains=searchTerm)
-    elif recommendationTerm:
+    if  recommendationTerm:
+        load_dotenv(r'D:\Users\Valentina\Universidad_EAFIT\Quinto_Semestre\Proyecto_Integrador_1\workshop3\workshop3\api_key.env')
+        client = OpenAI(api_key=os.environ.get('openai_api_key'))
         emb_req = get_embedding(recommendationTerm, client)
         sim = []
 
@@ -38,7 +33,17 @@ def home(request):
         idx = np.argmax(sim)
         recommended_movie = movies[int(idx)]
         movies = [recommended_movie]
-    return render(request, 'home.html', {'searchTerm':searchTerm, 'recommendationTerm': recommendationTerm, 'movies':movies})
+    return render(request, 'recommend_movies.html', {'recommendationTerm': recommendationTerm, 'movies':movies})
+    
+
+
+def home(request):
+    searchTerm = request.GET.get('searchMovie')
+    if searchTerm:
+        movies = Movie.objects.filter(title__icontains=searchTerm)
+    else:
+        movies = Movie.objects.all()
+    return render(request, 'home.html', {'searchTerm':searchTerm, 'movies':movies})
 def about(request):
     return render(request, 'about.html')
 def signup(request):
