@@ -1,36 +1,49 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-
 from .models import Movie
 
 import matplotlib.pyplot as plt
 import matplotlib
 import io
 import urllib, base64
+import os
+import numpy as np
+from openai import OpenAI
+from dotenv import load_dotenv
 
+def get_embedding(text, client, model="text-embedding-3-small"):
+   text = text.replace("\n", " ")
+   return client.embeddings.create(input=[text], model=model).data[0].embedding
 
+def cosine_similarity(a, b):
+    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
 
 def home(request):
-    #return HttpResponse('<h1>Welcome to Home Page</h1>')
-    #return render(request, 'home.html')
-    #return render(request, 'home.html', {'name':'Paola Vallejo'})
-    searchTerm = request.GET.get('searchMovie') # GET se usa para solicitar recursos de un servidor
+    searchTerm = request.GET.get('searchMovie')
+    recommendationTerm = request.GET.get('recommend_movie')
+    movies = Movie.objects.all()
+    load_dotenv(r'D:\Users\Valentina\Universidad_EAFIT\Quinto_Semestre\Proyecto_Integrador_1\workshop3\workshop3\api_key.env')
+    client = OpenAI(api_key=os.environ.get('openai_api_key'))
     if searchTerm:
         movies = Movie.objects.filter(title__icontains=searchTerm)
-    else:
-        movies = Movie.objects.all()
-    return render(request, 'home.html', {'searchTerm':searchTerm, 'movies':movies})
+    elif recommendationTerm:
+        emb_req = get_embedding(recommendationTerm, client)
+        sim = []
 
+        for movie in movies:
+            emb = list(np.frombuffer(movie.emb))
+            sim.append(cosine_similarity(emb, emb_req))
 
+        sim = np.array(sim)
+        idx = np.argmax(sim)
+        recommended_movie = movies[int(idx)]
+        movies = [recommended_movie]
+    return render(request, 'home.html', {'searchTerm':searchTerm, 'recommendationTerm': recommendationTerm, 'movies':movies})
 def about(request):
-    #return HttpResponse('<h1>Welcome to About Page</h1>')
     return render(request, 'about.html')
-
 def signup(request):
     email = request.GET.get('email') 
     return render(request, 'signup.html', {'email':email})
-
-
 def statistics_view0(request):
     matplotlib.use('Agg')
     # Obtener todas las películas
